@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Dashboard & Analytics - AI Interview Coach</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="AI Interview Coach Logo" class="nav-brand-logo">
+                <div class="nav-brand-text-group">
+                    <span class="nav-brand-title">AI Interview Coach</span>
+                    <span class="nav-brand-subtitle">Interactive AI Simulator</span>
+                </div>
+            </a>
+            <div class="nav-links">
+                <div class="ai-status-pill">
+                    <span class="status-dot"></span>
+                    <span>AI Engine Online</span>
+                </div>
+                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link active">Dashboard</a>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm">Start New Session</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 36px; margin-bottom: 60px;">
+        
+        <!-- Dashboard Header & Stats -->
+        <section class="card" style="margin-bottom: 35px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h1 style="font-size: 2.1rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.02em;">
+                        Your Performance Dashboard
+                    </h1>
+                    <p style="color: var(--text-secondary); font-size: 0.96rem; margin-top: 4px;">
+                        Track your score progression, review past interviews, and pinpoint skill improvements
+                    </p>
+                </div>
+
+                {% if interviews|length > 0 %}
+                    <button type="button" onclick="clearAllHistory()" class="btn btn-danger btn-sm">
+                        🗑️ Clear All History
+                    </button>
+                {% endif %}
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box primary">
+                    <h3>{{ interviews|length }}</h3>
+                    <p>Total Completed Sessions</p>
+                </div>
+                
+                {% set total_avg = 0 %}
+                {% if interviews|length > 0 %}
+                    {% set total_avg = (interviews | sum(attribute='average_score') / interviews|length) | round(1) %}
+                {% endif %}
+                
+                <div class="stat-box success">
+                    <h3>{{ total_avg }}<span style="font-size: 1.4rem; color: var(--text-secondary);">/10</span></h3>
+                    <p>Cumulative Average Score</p>
+                </div>
+                
+                {% set total_qs = interviews | sum(attribute='total_questions') %}
+                <div class="stat-box accent">
+                    <h3>{{ total_qs }}</h3>
+                    <p>Questions Answered & Analyzed</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Score Trend Chart (if at least 2 interviews) -->
+        {% if interviews|length >= 2 %}
+            <section class="card" style="margin-bottom: 35px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="font-size: 1.3rem; font-weight: 700; color: #FFFFFF;">Performance Trajectory</h3>
+                        <p style="font-size: 0.88rem; color: var(--text-secondary);">Historical score evolution across practice sessions</p>
+                    </div>
+                    <span class="badge badge-primary">Dynamic Trendline</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </section>
+        {% endif %}
+
+        <!-- History List -->
+        <section class="history-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <h2 style="font-size: 1.45rem; font-weight: 700; color: #FFFFFF;">Recent Practice Sessions</h2>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ interviews|length }} recorded session(s)</span>
+            </div>
+            
+            {% if interviews %}
+                <!-- Real-time Filter Bar -->
+                <div class="search-filter-bar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="sessionSearch" placeholder="Search by role, skill, or difficulty..." oninput="filterSessions()">
+                    </div>
+                </div>
+
+                <div id="sessionList" style="display: flex; flex-direction: column; gap: 16px;">
+                {% for interview in interviews %}
+                    <div class="history-item" id="interview-{{ interview.id }}" data-role="{{ interview.role|lower }}" data-diff="{{ interview.difficulty|lower }}">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                                <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF;">
+                                    {{ interview.role }}
+                                </h3>
+                                <span class="badge badge-difficulty">{{ interview.difficulty }}</span>
+                                <span class="badge badge-type">{{ interview.interview_type }}</span>
+                            </div>
+                            <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                                {{ interview.experience }} • {{ interview.total_questions }} Questions • {{ interview.created_at }}
+                            </p>
+                        </div>
+                        <div class="history-actions">
+                            <div class="score-badge" style="font-size: 1.1rem; padding: 6px 16px;">
+                                {{ interview.average_score }}/10
+                            </div>
+                            <a href="{{ url_for('result', interview_id=interview.id) }}" class="btn btn-secondary btn-sm">
+                                View Report →
+                            </a>
+                            <button type="button" onclick="deleteInterview({{ interview.id }}, event)" class="btn btn-danger btn-sm" title="Delete record">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+                    <div id="noSearchResults" class="card" style="display: none; text-align: center; padding: 36px 20px;">
+                        <p style="color: var(--text-secondary); font-size: 1rem;">🔍 No interview sessions match your search query.</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 65px 20px;">
+                    <div style="font-size: 3.2rem; margin-bottom: 14px;">🎯</div>
+                    <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: #FFFFFF;">No Interview Sessions Yet</h3>
+                    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 26px; font-size: 0.96rem;">
+                        You haven't completed any mock interviews yet. Launch your first session to receive instant AI scoring, personalized follow-ups, and in-depth feedback.
+                    </p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        Launch Your First Mock Interview →
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    {% if interviews|length >= 2 %}
+    <script>
+        // Chronological trend data (reverse from newest-first to oldest-first)
+        const interviewData = {{ interviews | tojson | safe }}.slice().reverse();
+        
+        const labels = interviewData.map((item, idx) => `Session #${idx + 1} (${((item.role || 'Session')).substring(0, 12)}...)`);
+        const scores = interviewData.map(item => parseFloat(item.average_score || 0));
+
+        const canvas = document.getElementById('trendChart');
+        if (canvas && typeof Chart !== 'undefined') {
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient fill for sleek dark chart
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.02)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Score',
+                        data: scores,
+                        borderColor: '#818CF8',
+                        borderWidth: 2.5,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#38BDF8',
+                        pointBorderColor: '#0F172A',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { 
+                                stepSize: 2,
+                                color: '#94A3B8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#94A3B8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.04)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#38BDF8',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    {% endif %}
+
+    <script>
+        // Real-time session filtering
+        function filterSessions() {
+            const query = (document.getElementById('sessionSearch')?.value || '').trim().toLowerCase();
+            const items = document.querySelectorAll('.history-item');
+            let matchCount = 0;
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (!query || text.includes(query)) {
+                    item.style.display = 'flex';
+                    matchCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            const noResults = document.getElementById('noSearchResults');
+            if (noResults) {
+                noResults.style.display = (items.length > 0 && matchCount === 0) ? 'block' : 'none';
+            }
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

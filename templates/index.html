@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Coach - Prepare, Practice & Ace Your Interviews</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="AI Interview Coach Logo" class="nav-brand-logo">
+                <div class="nav-brand-text-group">
+                    <span class="nav-brand-title">AI Interview Coach</span>
+                    <span class="nav-brand-subtitle">Interactive AI Simulator</span>
+                </div>
+            </a>
+            <nav class="nav-links">
+                <div class="ai-status-pill">
+                    <span class="status-dot"></span>
+                    <span>AI Engine Online</span>
+                </div>
+                <a href="{{ url_for('index') }}" class="nav-link active">Home</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard & Analytics</a>
+                <a href="#setup-section" class="btn btn-primary btn-sm">Start Practice</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="container">
+            <div class="hero-pill">
+                <span>✨</span>
+                <span>Powered by Advanced Gemini 2.0 AI</span>
+            </div>
+            <h1>
+                Master Your Next <br>
+                <span class="hero-gradient-text">High-Stakes Interview</span>
+            </h1>
+            <p class="subtitle">
+                Experience realistic, adaptive technical and behavioral mock interviews with instant scoring, voice interaction, intelligent follow-ups, and in-depth performance analytics.
+            </p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Feature Highlights -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">💻</div>
+                <h3>Technical & Architecture</h3>
+                <p>Tailored questions covering system design, core programming concepts, edge-case troubleshooting, and framework internals.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🤝</div>
+                <h3>HR & Behavioral Mastery</h3>
+                <p>Sharpen situational answers using the STAR method, tailored precisely to your seniority and leadership scope.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">📄</div>
+                <h3>Smart Resume Parsing</h3>
+                <p>Upload your PDF resume to have the AI probe specifically into your listed projects, technical stack, and achievements.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🎙️</div>
+                <h3>Voice & Analytics</h3>
+                <p>Dictate answers naturally using speech recognition, listen to the AI coach, and review topic proficiency charts.</p>
+            </div>
+        </section>
+
+        <!-- Setup Form -->
+        <section class="setup-section" id="setup-section">
+            <div class="setup-header">
+                <h2>Configure Your Practice Session</h2>
+                <p>Select your target role, seniority level, and core skill stack to begin</p>
+            </div>
+
+            <form action="{{ url_for('setup_interview') }}" method="POST" enctype="multipart/form-data" class="setup-form">
+                
+                <div class="form-group">
+                    <label for="role">🎯 Target Job Role</label>
+                    <select id="role" name="role" required>
+                        <option value="Python Developer" selected>Python Developer</option>
+                        <option value="Data Scientist">Data Scientist</option>
+                        <option value="AI/ML Engineer">AI/ML Engineer</option>
+                        <option value="Software Developer">Software Developer (General/SDE)</option>
+                        <option value="Web Developer">Full Stack / Web Developer</option>
+                        <option value="Data Analyst">Data Analyst</option>
+                        <option value="Custom Role">Custom Role...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="custom-role-group" style="display: none;">
+                    <label for="custom_role">Specify Custom Role</label>
+                    <input type="text" id="custom_role" name="custom_role" placeholder="e.g. Cloud DevOps Engineer">
+                </div>
+
+                <div class="form-group">
+                    <label for="experience">📈 Experience Level</label>
+                    <select id="experience" name="experience" required>
+                        <option value="Fresher">Fresher / Graduate (0-1 yrs)</option>
+                        <option value="Junior" selected>Junior / Early Career (1-2 yrs)</option>
+                        <option value="Intermediate">Intermediate / Mid-Level (3-5 yrs)</option>
+                        <option value="Senior">Senior / Staff Engineer (5+ yrs)</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="skills">⚡ Core Skills & Focus Topics (Comma separated)</label>
+                    <input type="text" id="skills" name="skills" placeholder="Python, Django, FastAPI, PostgreSQL, Docker, REST APIs" required>
+                    <div class="preset-chips">
+                        <span class="preset-chip" onclick="setPresetSkills('Python, Django, Flask, PostgreSQL, Docker, REST APIs')">+ Python Web</span>
+                        <span class="preset-chip" onclick="setPresetSkills('Python, SQL, Pandas, NumPy, Scikit-learn, Machine Learning')">+ Data Science</span>
+                        <span class="preset-chip" onclick="setPresetSkills('JavaScript, TypeScript, React, Next.js, Node.js, CSS3')">+ Fullstack JS</span>
+                        <span class="preset-chip" onclick="setPresetSkills('Data Structures, Algorithms, System Design, OOP, Java')">+ SDE Core</span>
+                        <span class="preset-chip" onclick="setPresetSkills('PyTorch, Transformers, LLMs, LangChain, Vector DBs, MLOps')">+ Generative AI</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="interview_type">🧭 Interview Focus</label>
+                    <select id="interview_type" name="interview_type" required>
+                        <option value="Technical" selected>Technical & Coding Only</option>
+                        <option value="HR">HR & Behavioral Only</option>
+                        <option value="Mixed">Mixed (Technical + Behavioral)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">⚡ Challenge Difficulty</label>
+                    <select id="difficulty" name="difficulty" required>
+                        <option value="Easy">Easy (Foundations & Concepts)</option>
+                        <option value="Medium" selected>Medium (Standard Industry Questions)</option>
+                        <option value="Hard">Hard (Deep Edge-Cases & Scenarios)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="num_questions">🔢 Number of Questions</label>
+                    <select id="num_questions" name="num_questions" required>
+                        <option value="3">3 Questions (Quick Test ~5 mins)</option>
+                        <option value="5" selected>5 Questions (Standard Practice ~10 mins)</option>
+                        <option value="10">10 Questions (Full Mock Session ~20 mins)</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="resume">📄 Upload Resume or Document (Optional)</label>
+                    <div class="file-dropzone" id="file-dropzone" tabindex="0" role="button" aria-label="Upload resume or document">
+                        <input type="file" id="resume" name="resume" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="dropzone-input">
+                        
+                        <!-- Default Idle State -->
+                        <div class="dropzone-content" id="dropzone-content-default">
+                            <div class="dropzone-icon">
+                                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <div class="dropzone-text">
+                                <span class="dropzone-title">Drag & drop your document here</span>
+                                <span class="dropzone-subtitle">or <span class="dropzone-browse-btn">browse from computer</span></span>
+                            </div>
+                            <div class="dropzone-badges">
+                                <span class="badge">PDF</span>
+                                <span class="badge">DOCX</span>
+                                <span class="badge">TXT</span>
+                                <span class="badge-limit">Max 10MB</span>
+                            </div>
+                        </div>
+
+                        <!-- File Selected Preview State -->
+                        <div class="dropzone-content-selected" id="dropzone-content-selected" style="display: none;">
+                            <div class="file-info-box">
+                                <div class="file-icon-badge" id="file-type-icon">📄</div>
+                                <div class="file-details">
+                                    <div class="file-name" id="selected-file-name">document.pdf</div>
+                                    <div class="file-meta">
+                                        <span id="selected-file-size">0 KB</span>
+                                        <span class="file-ready-tag">✓ Ready to parse</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-remove-file" id="btn-remove-file" title="Remove file" aria-label="Remove uploaded file">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Drag Hover Overlay -->
+                        <div class="dropzone-overlay" id="dropzone-overlay">
+                            <div class="dropzone-overlay-inner">
+                                <span class="dropzone-overlay-emoji">📥</span>
+                                <strong>Drop document to upload</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 8px; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                        <span>💡</span> If provided, the AI tailors mock questions specifically to your resume projects and technical experience.
+                    </small>
+                </div>
+
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    LAUNCH MOCK INTERVIEW SESSION →
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

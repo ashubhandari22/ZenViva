@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Interview Session - AI Interview Coach</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navbar with Status & Timer -->
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="AI Interview Coach Logo" class="nav-brand-logo">
+                <div class="nav-brand-text-group">
+                    <span class="nav-brand-title">AI Interview Coach</span>
+                    <span class="nav-brand-subtitle">Live Mock Session</span>
+                </div>
+            </a>
+
+            <div class="interview-stats">
+                <div class="timer-badge">
+                    <span>⏱️</span>
+                    <span id="timer-display">00:00</span>
+                </div>
+
+                <div class="progress-container">
+                    <span id="question-counter" style="font-weight: 700; font-size: 0.85rem; color: #E2E8F0;">
+                        Question 1 of {{ config.num_questions or 5 }}
+                    </span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 10%;"></div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('cancel_interview') }}" class="btn btn-secondary btn-sm" onclick="return confirm('Are you sure you want to end this interview session? Your current progress will be lost.');">
+                    Exit Session
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 36px; margin-bottom: 60px;">
+        <section class="interview-container card">
+            
+            <!-- Loading Indicator -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loading-text">🤖 Preparing your interview session...</div>
+                <div class="loading-subtext">Generating questions tailored to {{ config.role }} ({{ config.experience }})</div>
+            </div>
+            
+            <!-- Question Screen -->
+            <div id="question-area" style="display: none;">
+                <div class="question-meta-bar">
+                    <div class="badges-group">
+                        <span id="question-topic" class="badge badge-primary">General</span>
+                        <span id="question-type" class="badge badge-type">TECHNICAL</span>
+                        <span id="question-difficulty" class="badge badge-difficulty">MEDIUM</span>
+                    </div>
+
+                    <!-- Question Audio TTS -->
+                    <button id="tts-btn" class="btn-icon" onclick="toggleQuestionTTS()" title="Read question aloud">
+                        <span>🔊</span> <span id="tts-label">Listen to Question</span>
+                    </button>
+                </div>
+
+                <h2 id="current-question" class="question-title">Loading question...</h2>
+                
+                <!-- Answer Controls -->
+                <div class="audio-controls">
+                    <button id="mic-btn" class="btn-icon" onclick="toggleRecording()" title="Speak answer using microphone">
+                        <span>🎙️</span> <span id="mic-label">Speak Answer (Mic)</span>
+                    </button>
+                    <span style="font-size: 0.88rem; color: var(--text-secondary);">or formulate and type your response:</span>
+                </div>
+
+                <textarea id="user-answer" placeholder="Formulate your response clearly. Pro tip: For behavioral prompts, use the STAR format (Situation, Task, Action, Result). For technical questions, mention trade-offs and edge cases..." rows="9"></textarea>
+                
+                <div class="input-helper-bar">
+                    <span id="word-count">0 words • 0 chars</span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('user-answer').value=''; updateWordCount();">
+                        Clear Response
+                    </button>
+                </div>
+
+                <button id="submit-answer-btn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 18px;">
+                    SUBMIT ANSWER FOR AI EVALUATION →
+                </button>
+            </div>
+
+            <!-- Feedback Area (Hidden until submitted) -->
+            <div id="feedback-area" style="display: none;">
+                <div class="feedback-header">
+                    <div>
+                        <h3 style="font-size: 1.5rem; font-weight: 800; color: #FFFFFF;">Coach Evaluation & Scoring</h3>
+                        <p style="font-size: 0.88rem; color: var(--text-secondary);">AI-powered weighted matrix analysis of your response</p>
+                    </div>
+                    <div class="score-badge" id="score-display">0/10</div>
+                </div>
+
+                <!-- AI Evaluation Rubric Matrix -->
+                <div id="evaluation-matrix-block" class="matrix-container" style="display: none; margin-bottom: 22px;">
+                    <div class="matrix-header">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="matrix-tag">⚖️ AI EVALUATION MATRIX</span>
+                            <span style="font-size: 0.82rem; color: var(--text-secondary);">4-dimensional weighted composite score</span>
+                        </div>
+                        <span class="matrix-composite-pill">Formula: 30% Acc + 25% Depth + 20% Clarity + 25% Trade-offs</span>
+                    </div>
+                    <div class="matrix-grid" id="matrix-grid">
+                        <!-- Dynamically filled with metric cards -->
+                    </div>
+                </div>
+                
+                <!-- Strengths and Areas of Improvement -->
+                <div class="feedback-grid">
+                    <div class="feedback-box success">
+                        <h4>Strengths Identified</h4>
+                        <ul id="strengths-list"></ul>
+                    </div>
+                    <div class="feedback-box warning">
+                        <h4>Areas for Improvement</h4>
+                        <ul id="missing-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="feedback-section-block">
+                    <h4>Detailed Assessment</h4>
+                    <div class="feedback-section-content" id="feedback-text"></div>
+                </div>
+
+                <div class="feedback-section-block">
+                    <h4>Actionable Recommendation</h4>
+                    <div class="feedback-section-content" id="improvement-text"></div>
+                </div>
+
+                <div class="feedback-section-block">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4>Model Sample Answer</h4>
+                        <button type="button" class="btn-icon" onclick="copySampleAnswer()">📋 Copy Model Answer</button>
+                    </div>
+                    <div class="sample-answer-content" id="sample-answer-text"></div>
+                </div>
+
+                <div class="feedback-section-block" id="follow-up-block" style="display: none;">
+                    <h4>Coach Follow-up Insight</h4>
+                    <div class="feedback-section-content" id="follow-up-text" style="border-left: 3px solid var(--accent-cyan); color: #BAE6FD;"></div>
+                </div>
+
+                <button id="next-question-btn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 18px;">
+                    NEXT QUESTION →
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const numQuestions = {{ config.num_questions or 5 }};
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

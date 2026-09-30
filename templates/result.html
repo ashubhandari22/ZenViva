@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Performance Report - AI Interview Coach</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <header class="navbar no-print">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="AI Interview Coach Logo" class="nav-brand-logo">
+                <div class="nav-brand-text-group">
+                    <span class="nav-brand-title">AI Interview Coach</span>
+                    <span class="nav-brand-subtitle">Performance Evaluation</span>
+                </div>
+            </a>
+            <div class="nav-links">
+                <button type="button" onclick="window.print()" class="btn btn-secondary btn-sm">
+                    🖨️ Print / Save PDF
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm">Practice Again</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 36px; margin-bottom: 60px;">
+        
+        <!-- Header Banner -->
+        <div style="text-align: center; margin-bottom: 35px;">
+            <div class="hero-pill" style="margin-bottom: 12px;">
+                ✨ SESSION COMPLETE & EVALUATED
+            </div>
+            <h1 style="font-size: 2.6rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.02em;">
+                Interview Performance Summary
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.05rem; margin-top: 6px;">
+                Target Role: <strong style="color: #FFFFFF;">{{ data.interview.role }}</strong> • Level: <strong style="color: #FFFFFF;">{{ data.interview.experience }}</strong> • Type: <strong style="color: #FFFFFF;">{{ data.interview.interview_type }}</strong>
+            </p>
+        </div>
+
+        <!-- High-level Metric Cards -->
+        <div class="result-overview-grid">
+            <!-- Overall Score Card -->
+            <div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.6));">
+                <h3 style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Overall Mastery Score</h3>
+                
+                <div style="font-size: 4.8rem; font-weight: 800; line-height: 1; color: #818CF8; letter-spacing: -0.03em; text-shadow: 0 0 25px rgba(99, 102, 241, 0.5);">
+                    {{ data.interview.average_score }}<span style="font-size: 2rem; font-weight: 600; color: var(--text-secondary);">/10</span>
+                </div>
+
+                <div style="margin-top: 18px;">
+                    {% if (data.interview.average_score or 0) >= 8.0 %}
+                        <span class="badge" style="background-color: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); font-size: 0.9rem; padding: 7px 16px;">
+                            🏆 Outstanding Performance
+                        </span>
+                    {% elif (data.interview.average_score or 0) >= 6.0 %}
+                        <span class="badge" style="background-color: rgba(99, 102, 241, 0.18); color: #A5B4FC; border: 1px solid rgba(99, 102, 241, 0.35); font-size: 0.9rem; padding: 7px 16px;">
+                            ⚡ Strong & Competitive
+                        </span>
+                    {% else %}
+                        <span class="badge" style="background-color: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); font-size: 0.9rem; padding: 7px 16px;">
+                            🎯 Needs Targeted Practice
+                        </span>
+                    {% endif %}
+                </div>
+
+                <p style="margin-top: 14px; font-size: 0.88rem; color: var(--text-secondary);">
+                    Evaluated across {{ data.interview.total_questions }} interview questions
+                </p>
+            </div>
+            
+            <!-- Topic Performance Chart -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF;">Topic Proficiency Breakdown</h3>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Average Score per Competency</span>
+                    </div>
+                    <span class="badge badge-type">Comparative Metric</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                    <canvas id="topicChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Breakdown Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;">
+            <h2 style="font-size: 1.55rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.01em;">
+                Question-by-Question Analysis
+            </h2>
+            <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ data.responses|length }} items evaluated</span>
+        </div>
+
+        <!-- Response Cards -->
+        <div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 45px;">
+            {% for response in data.responses %}
+                <div class="card" style="padding: 28px;">
+                    
+                    <!-- Question Title & Score Badge -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); padding-bottom: 18px; margin-bottom: 20px; gap: 16px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                <span class="badge badge-primary">Q{{ loop.index }}</span>
+                                <span class="badge badge-type">{{ response.topic }}</span>
+                            </div>
+                            <h3 style="font-size: 1.3rem; font-weight: 700; color: #FFFFFF; line-height: 1.4;">
+                                {{ response.question }}
+                            </h3>
+                        </div>
+                        <div class="score-badge" style="font-size: 1.15rem; padding: 6px 16px; white-space: nowrap;">
+                            {{ response.score }}/10
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Answer -->
+                    <div style="margin-bottom: 22px;">
+                        <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 8px;">
+                            Your Answer:
+                        </h4>
+                        <div style="background: rgba(11, 15, 25, 0.7); border: 1px solid var(--card-border); padding: 16px 20px; border-radius: var(--radius-md); font-size: 0.96rem; color: #E2E8F0; line-height: 1.65;">
+                            {{ response.answer }}
+                        </div>
+                    </div>
+
+                    <!-- AI Evaluation Rubric Matrix Breakdown (if available) -->
+                    {% if response.evaluation_matrix and response.evaluation_matrix.keys() %}
+                        <div class="matrix-container" style="margin-bottom: 22px;">
+                            <div class="matrix-header">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="matrix-tag">⚖️ AI EVALUATION MATRIX BREAKDOWN</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Individual weighted rubric components</span>
+                                </div>
+                                <span class="matrix-composite-pill">Total: {{ response.score }}/10</span>
+                            </div>
+                            <div class="matrix-grid">
+                                {% for key, dim in response.evaluation_matrix.items() %}
+                                    <div class="matrix-card">
+                                        <div class="matrix-card-header">
+                                            <span class="matrix-card-title">{{ dim.title or key }}</span>
+                                            <span class="matrix-card-score">{{ dim.score }}/10 <span class="matrix-card-weight">({{ dim.weight }})</span></span>
+                                        </div>
+                                        <div class="matrix-meter-track">
+                                            <div class="matrix-meter-fill" style="width: {{ (dim.score * 10)|round }}%;"></div>
+                                        </div>
+                                        <p class="matrix-card-assessment">{{ dim.assessment }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Strengths and Areas for Improvement Grid -->
+                    {% if response.strengths or response.missing_points %}
+                        <div class="feedback-grid" style="margin-bottom: 22px;">
+                            <div class="feedback-box success">
+                                <h4>What You Did Well</h4>
+                                <ul>
+                                    {% if response.strengths is string %}
+                                        <li>{{ response.strengths }}</li>
+                                    {% else %}
+                                        {% for item in response.strengths %}
+                                            <li>{{ item }}</li>
+                                        {% else %}
+                                            <li>Clear attempt directly addressing the question prompt.</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="feedback-box warning">
+                                <h4>What Was Missing / Needs Work</h4>
+                                <ul>
+                                    {% if response.missing_points is string %}
+                                        <li>{{ response.missing_points }}</li>
+                                    {% else %}
+                                        {% for item in response.missing_points %}
+                                            <li>{{ item }}</li>
+                                        {% else %}
+                                            <li>No critical omissions noted.</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Detailed Feedback and Advice -->
+                    <div class="feedback-section-block">
+                        <h4>Coach Assessment</h4>
+                        <div class="feedback-section-content">
+                            {{ response.feedback }}
+                        </div>
+                    </div>
+
+                    {% if response.improvement %}
+                        <div class="feedback-section-block">
+                            <h4>How to Improve Next Time</h4>
+                            <div class="feedback-section-content">
+                                {{ response.improvement }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if response.sample_answer %}
+                        <div class="feedback-section-block" style="margin-bottom: 0;">
+                            <h4>Model Sample Answer</h4>
+                            <div class="sample-answer-content">
+                                {{ response.sample_answer }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="actions-bar no-print" style="text-align: center; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            <button type="button" onclick="window.print()" class="btn btn-secondary">
+                🖨️ Print / Save PDF
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                📊 View All Past Interviews
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                ⚡ Practice Another Role
+            </a>
+        </div>
+    </main>
+
+    <script>
+        // Extract topics and scores for the chart
+        const responses = {{ data.responses | tojson | safe }};
+        
+        // Group by topic and calculate average
+        const topicScores = {};
+        const topicCounts = {};
+        
+        responses.forEach(r => {
+            const topic = r.topic || 'General';
+            if (!topicScores[topic]) {
+                topicScores[topic] = 0;
+                topicCounts[topic] = 0;
+            }
+            topicScores[topic] += parseFloat(r.score || 0);
+            topicCounts[topic] += 1;
+        });
+        
+        const labels = Object.keys(topicScores);
+        const chartData = labels.map(label => (topicScores[label] / topicCounts[label]).toFixed(1));
+        
+        const canvas = document.getElementById('topicChart');
+        if (canvas && typeof Chart !== 'undefined') {
+            const ctx = canvas.getContext('2d');
+            
+            // Bar gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(6, 182, 212, 0.85)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.45)');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Score (out of 10)',
+                        data: chartData,
+                        backgroundColor: gradient,
+                        borderColor: '#38BDF8',
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(56, 189, 248, 0.95)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { 
+                                stepSize: 2,
+                                color: '#94A3B8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#94A3B8'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#38BDF8',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
