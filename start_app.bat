@@ -1,9 +1,9 @@
 @echo off
-title AI Interview Coach Launcher
+title ZenViva Launcher
 cd /d "%~dp0"
 
 echo ===================================================
-echo           Starting AI Interview Coach...
+echo               Starting ZenViva...
 echo ===================================================
 
 :: Check if server is already running on port 5000
@@ -16,7 +16,7 @@ if %errorlevel% equ 0 (
 )
 
 :: Start the Flask server
-start "AI Interview Coach Server" python app.py
+start "ZenViva Server" python app.py
 
 :: Wait 2 seconds for the server to bind
 timeout /t 2 /nobreak >nul

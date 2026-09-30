@@ -1,7 +1,7 @@
-# AI Interview Coach
+# ZenViva - AI Interview & Career Coach
 
 ## Description
-AI Interview Coach is a beginner-friendly Python web application that helps candidates prepare for their upcoming job interviews. By leveraging the power of Large Language Models (LLMs), the application generates tailored technical and HR interview questions based on the candidate's chosen role, experience, and skills. It also provides instant, detailed feedback on the candidate's answers, scoring them out of 10 and offering suggestions for improvement.
+ZenViva is a modern, interactive Python web application that helps candidates prepare for their upcoming job interviews. By leveraging the power of Google Gemini AI, ZenViva generates tailored technical and HR interview questions based on the candidate's chosen role, experience, and skills. It also provides instant, detailed feedback on the candidate's answers using a 4-dimensional AI Evaluation Matrix, scoring them out of 10 and offering actionable suggestions for improvement.
 
 ## Features
 - **Customizable Interview Setup**: Choose from various job roles, experience levels, and difficulty settings.
